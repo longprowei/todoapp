@@ -6,7 +6,7 @@
                 display: none;
             }
 
-            #todoList {
+            #lists, #todoList {
                 list-style: none;
                 padding-left: 0;
             }
@@ -45,6 +45,7 @@
             <ul id="lists">
                 {% for list in lists %}
                 <li>
+                    <input class="list-check-completed" data-id="{{ list.id }}" type="checkbox" {% if list.completed %} checked {% endif %}/>
                     <a href="/lists/{{ list.id }}">{{ list.name }}</a>
                 </li>
                 {% endfor %}
@@ -60,7 +61,7 @@
             <ul id="todoList">
                 {% for todo in todos %}
                     <li>
-                        <input class="check-completed" data-id="{{ todo.id }}" type="checkbox" {% if todo.completed %} checked {% endif %}/>
+                        <input class="todo-check-completed" data-id="{{ todo.id }}" type="checkbox" {% if todo.completed %} checked {% endif %}/>
                         {{ todo.description }}
                         <button class="btn-delete" data-id="{{ todo.id }}">&cross;</button>
                     </li>
@@ -69,14 +70,39 @@
         </div>
         
         <script>
-            let checkboxes = document.querySelectorAll('.check-completed');
-            console.log(checkboxes);
-            for (let i = 0; i < checkboxes.length; i++) {
-                checkboxes[i].onchange = function(e) {
+            let todoCheckboxes = document.querySelectorAll('.todo-check-completed');
+            console.log(todoCheckboxes);
+            for (let i = 0; i < todoCheckboxes.length; i++) {
+                todoCheckboxes[i].onchange = function(e) {
                     let checked = e.target.checked;
                     let id = e.target.dataset['id'];
 
                     fetch('/todos/' + id + '/set-completed', {
+                       method: 'POST',
+                       body: JSON.stringify({
+                            'completed': checked
+                       }),
+                       headers: {
+                           'Content-Type': 'application/json'
+                       }
+                    })
+                    .then(function() {
+                        document.getElementById('error').className = 'hidden';
+                    })
+                    .catch(function() {
+                        document.getElementById('error').className = '';
+                    })
+                };
+            }
+
+            let listCheckboxes = document.querySelectorAll('.list-check-completed');
+            console.log(listCheckboxes);
+            for (let i = 0; i < listCheckboxes.length; i++) {
+                listCheckboxes[i].onchange = function(e) {
+                    let checked = e.target.checked;
+                    let id = e.target.dataset['id'];
+
+                    fetch('/lists/' + id + '/set-completed', {
                        method: 'POST',
                        body: JSON.stringify({
                             'completed': checked
